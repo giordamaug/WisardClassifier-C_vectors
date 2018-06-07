@@ -118,7 +118,7 @@ In this package a python script <code>wisard_classifier.py</code> is distributed
 execute WisardClasifier in python 
 
 ```bash
-$ python wisard_classifier.py -i \<dataset\>
+$ python wisard_classifier.py -i <dataset>
 ```
 
 Where <code>\<dataset\></code> can be any data file in ARFF, LIBSVM, or CSV format.
