@@ -1,5 +1,6 @@
-# The WiSARD library
-A C++ implementation of the WiSARD weightless neural network.
+# WisardClassifier
+Machine learning supervised method for classification using WiSARD
+
 > Authors: Maurizio Giordano and Massimo De Gregorio
 > - Istituto di Calcolo e Reti ad Alte Prestazioni (ICAR) - Consiglio Nazionale delle Ricerche (CNR) (Italy)
 > - Istituto di Scienze Applicate e Sistemi Intelligenti "Eduardo Caianiello" (ISASI) - Consiglio Nazionale delle Ricerche (CNR) (Italy)
@@ -8,119 +9,181 @@ A C++ implementation of the WiSARD weightless neural network.
 Description
 ----------------------
 
-WiSARD stands for "Wilkie, Stonham, Aleksander Recognition Device". 
-It is a weightless neural network model to recognize binary patterns.
-For a introduction to WiSARD, please read <a href="https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2009-6.pdf">A brief introduction to Weightless Neural Systems</a>
+WisardClassifier is a machine learning classifer implemented as an exntension module of
+the scikit-learn package in Python.
+As a consequence, to use WisardClassifier you need the following packages installed in your
+Python environment:
 
-This software is an efficient C++ library implementation of WiSARD
-basic components and functions. It can be used in any C++ application.
+1) Numpy
 
-The C++ WiSARD library is distributed together with a Python interface,
-called WiSARDpy, to use WiSARD in Python programming with 
-fast training/classification time.
+2) Scikit-Learn
+
+WisardClassifier core functions and memory management is implemented in C++.
+(sources are in the <code>wislib</code> directory).
 
 ----------------------
-Citation Details
+Build and setup (Linux, Mac OSX)
 ----------------------
-  
-If you use this library, please cite the followong work
 
-M. De Gregorio, M. Giordano.
-"The WiSARD classifier"
-In: Proceedings of 24th European Symposium on Artificial Neural Networks, 
-Computational Intelligence and Machine Learning, ESANN 2016; Bruges; Belgium
+To build the code and setup in python (locally) you just need to execute:
 
-Bibtex:
-
-```
-@CONFERENCE{DeGregorio2016,
-author={De Gregorio, M. and Giordano, M.},
-title={The WiSARD classifier},
-journal={ESANN 2016 - 24th European Symposium on Artificial Neural Networks},
-year={2016},
-pages={447-452},
-url={https://www.scopus.com/inward/record.uri?eid=2-s2.0-84994165233&partnerID=40&md5=c77502db0e36746bf85293361cb1f122},
-document_type={Conference Paper},
-source={Scopus},
-}
+```bash
+$ python setup.py build_ext --inplace
 ```
 
-----------------------
-License
-----------------------
-  
-The source code is provided without any warranty of fitness for any purpose.
-You can redistribute it and/or modify it under the terms of the
-GNU General Public License (GPL) as published by the Free Software Foundation,
-either version 3 of the License or (at your option) any later version.
-A copy of the GPL license is provided in the "GPL.txt" file.
-
-----------------------
-Compile source (Linux, Mac OSX)
-----------------------
-
-To run the code the following libraries are required:
-
-2. CMake  2.8  (later version may also work)
-
-3. C++ Compiler (tested only with GCC 5.x or later versions)
-
-```
-$ cmake .
-$ make
-```
+This will produce the WiSARD wrapper library wit name: <code>wisard_wrapper.cpython-<arch>.dllext</code> 
+where <code><arch></code> is the target architecture and <code>dllext</code> is the library extension (<code.so</code> for Mac and Linux).
 
 
 ----------------------
-WiSARD in Python
+Testing
 ----------------------
 
-To use WiSARD in your Python scripts you need to have
+To use the WisardClassifier in your Python scripts you need to have
 python 2.7 (or later) installed on your system, plus the following
 modules:
 
-1. Numpy
+1. Numpy (http://www.numpy.org)
 
-2. Cython
+2. Cython (http://cython.org) 
 
-Once you have set the python programming framework, you can use the following simple
-script to start using WiSARD (that can be found in folder WiSARDpy).
+3. matplotlib (optional) (https://matplotlib.org)
+
+Please refer to the documentation of these packages for installation.
+
+Once you have set the python programming framework, you can use the file <code>test.py</code> simple
+script to start using WiSARD.
 
 ```python
-from wisard import *
+from wisardwrapper import *
+import numpy as np
 
-# dataset is list of list, or 2-dimensional numpy array
-X = np.array(
-   [ [0, 1, 0, 0, 0, 0, 0, 0],
-     [0, 0, 1, 1, 1, 1, 0, 0],
-     [0, 0, 1, 0, 0, 0, 1, 0],
-     [1, 0, 0, 0, 0, 0, 0, 1],
-     [1, 1, 0, 1, 1, 1, 1, 1],
-     [1, 0, 0, 0, 0, 0, 0, 0],
-     [0, 0, 0, 0, 1, 0, 0, 1],
-     [1, 0, 0, 0, 0, 0, 0, 1]])
+def mk_tuple(discr, sample):
+    intuple = np.zeros(discr.contents.n_ram, dtype = np.uint64)
+    for i in range(discr.contents.n_ram):
+        for j in range(discr.contents.n_bit):
+            x = discr.contents.map[(i * discr.contents.n_bit) + j]
+            intuple[i] += (2**(discr.contents.n_bit -1 - j))  * sample[x]
+    return intuple
 
-# label set is a list, or a numpy array
-y = np.array(['A','A','B','B','A','A','B','A',])
 
-# create wisard object (with 2 bit resolution)
-w = WiSARD(2)
-# create/train the wisard object
-w.fit(X, y)
+X = np.array([[0, 1, 0, 0, 0, 0, 0, 0],
+              [0, 0, 1, 1, 1, 1, 0, 0],
+              [0, 0, 1, 0, 0, 0, 1, 0],
+              [1, 0, 0, 0, 0, 0, 0, 1],
+              [1, 1, 0, 1, 1, 1, 1, 1],
+              [1, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 1, 0, 0, 1],
+              [1, 0, 0, 0, 0, 0, 0, 1]], np.int32)
 
-# classify by wisard
-result = w.predict(X)
-# classify by enabling bleaching
-w.setBleaching()
-result_b = w.predict(X)
+y = np.array(["A","A","B","B","A","A","B","A"])
+
+test = np.array([0, 0, 1, 0, 0, 0, 1, 0], np.int32)
+
+# init WiSARD (create discriminator for each class "A" and "B")
+wisard = {}
+wisard["A"] = make_discr(2,8,"random",0)
+wisard["B"] = make_discr(2,8,"random",0)
+
+# train WiSARD
+for s in range(X.shape[0]):
+    tuple = mk_tuple(wisard[y[s]],X[s])
+    train_discr(wisard[y[s]],tuple)
+
+# print WiSARD state
+print_discr(wisard["A"]);
+print_discr(wisard["B"]);
+    
+# predict by WiSARD
+responses = {}
+test_tuple = mk_tuple(wisard["A"],test)
+responses["A"] = classify_discr(wisard["A"],test_tuple);
+test_tuple = mk_tuple(wisard["B"],test)
+responses["B"] = classify_discr(wisard["B"],test_tuple);
+print("A responds with score %.2f\n"%responses["A"]);
+print("B responds with score %.2f\n"%responses["B"]);
 ```
 
-Note that the bleaching implementation of the WiSARD is included in the python wrapper 
-of our WiSARD Library, not in the library itself. 
-This implementation is very similar to the one implemented in the https://github.com/firmino/PyWANN 
-software distribution, which. Both implementations refer to the work:
+-------------------------
+WiSARD in Scikit Learn
+-------------------------
 
-Danilo S. Carvalho, Hugo C. C. Carneiro, Felipe M. G. Franca, Priscila M. V. Lima.
-"B-bleaching: Agile Overtraining Avoidance in the WiSARD Weightless Neural Classifier"
-In: Proceedings of 21st European Symposium on Artificial Neural Networks (ESANN 2013) - ISBN 978-2-87419-081-0. 
-Available from http://www.i6doc.com/en/livre/?GCOI=28001100131010.
+To use WiSARD in Scikit Learn Python library you need the following packages:
+
+1. Scipy (https://www.scipy.org)
+
+2. Scikit Learn (http://scikit-learn.org)
+
+Please refer to the documentation of these packages for installation.
+
+Hereafter we report a Python script <code>test_wis.py</code> as an example of usage of WisardClassifier within the Scikit-Learn
+machine learning programming framework. For a more complete example, see file <code>test.py</code>.
+
+```python
+# import sklearn and scipy stuff
+from sklearn.datasets import load_svmlight_file
+from sklearn import cross_validation
+import scipy.sparse as sps
+from scipy.io import arff
+# import wisard classifier library
+from wis import WisardClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score
+from utilities import *
+import time
+
+# (Try) import matplot for graphics
+try:
+    import matplotlib.pyplot as plt
+    matplotfound = True
+except ImportError:
+    matplotfound = False
+    pass
+
+B_enabled = True
+# IRIS (arff) - load datasets
+data, meta = arff.loadarff(open("datasets/iris.arff", "r"))
+y_train = np.array(data['class'])
+X_train = np.array([list(x) for x in data[meta._attrnames[0:-1]]])
+X_train = X_train.toarray() if sps.issparse(X_train) else X_train  # avoid sparse data
+class_names = np.unique(y_train)
+# IRIS (arff) - cross validation example
+clf = WisardClassifier(n_bits=16,bleaching=B_enabled,n_tics=256,mapping='linear',debug=True,default_bleaching=3)
+kf = cross_validation.LeaveOneOut(len(class_names))
+predicted = cross_validation.cross_val_score(clf, X_train, y_train, cv=kf, n_jobs=1)
+print("Accuracy Avg: %.2f" % predicted.mean())
+
+# IRIS (libsvm) - load datasets
+X_train, y_train = load_svmlight_file(open("datasets/iris.libsvm", "r"))
+class_names = np.unique(y_train)
+X_train = X_train.toarray() if sps.issparse(X_train) else X_train  # avoid sparse data
+# IRIS - cross validation example (with fixed seed)
+clf = WisardClassifier(n_bits=16,n_tics=1024,debug=True,bleaching=B_enabled,random_state=848484848)
+kf = cross_validation.StratifiedKFold(y_train, 10)
+predicted = cross_validation.cross_val_score(clf, X_train, y_train, cv=kf, n_jobs=1, verbose=0)
+print("Accuracy Avg: %.2f" % predicted.mean())
+
+# DNA (libsvm) - load datasets
+X_train, y_train = load_svmlight_file(open("datasets/dna.tr", "r"))
+X_train = X_train.toarray() if sps.issparse(X_train) else X_train  # avoid sparse data
+class_names = np.unique(y_train)
+X_test, y_test = load_svmlight_file(open("datasets/dna.t", "r"))
+X_test = X_test.toarray() if sps.issparse(X_test) else X_test  # avoid sparse data
+
+# DNA (arff) - testing example
+clf = WisardClassifier(n_bits=16,n_tics=512,debug=True,bleaching=B_enabled,random_state=848484848,n_jobs=-1)
+y_pred = clf.fit(X_train, y_train)
+tm = time.time()
+y_pred = clf.predict(X_test)
+print("Time: %d"%(time.time()-tm))
+predicted = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+print("Accuracy: %.2f" % predicted)
+
+# DNA - plot (print) confusion matrix
+if matplotfound:
+    plt.figure()
+    plot_confusion_matrix(cm, classes=class_names,title='Confusion matrix')
+    plt.show()
+else:
+    print_confmatrix(cm)
+```
