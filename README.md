@@ -121,5 +121,5 @@ execute WisardClasifier in python
 $ python wisard_classifier.py -i <dataset>
 ```
 
-Where <code><dataset></code> can be any data file in ARFF, LIBSVM, or CSV format.
+Where <code>\<dataset\></code> can be any data file in ARFF, LIBSVM, or CSV format.
     
