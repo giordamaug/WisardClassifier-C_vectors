@@ -11,6 +11,7 @@ import time
 import multiprocessing as mp
 
 from wisard_wrapper import *
+from utilities import color
 
 mypowers = 2**np.arange(32, dtype = np.uint32)[::]
 
