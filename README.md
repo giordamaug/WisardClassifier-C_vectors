@@ -155,11 +155,12 @@ execute WisardClassifier in python
 $ python wisard_classifier.py -i <dataset>
 ```
 
+Where <code>\<dataset\></code> can be any data file in ARFF, LIBSVM, or CSV format.
+
 For a complete list of script parameters you can read the command help:
 
 ```bash
 python2.7 wisard_classifier.py -h
 ```
 
-Where <code>\<dataset\></code> can be any data file in ARFF, LIBSVM, or CSV format.
     
