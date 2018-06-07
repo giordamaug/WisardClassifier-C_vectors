@@ -18,8 +18,35 @@ Python environment:
 
 2) Scikit-Learn
 
-WisardClassifier core functions and memory management is implemented in C++.
-(sources are in the <code>wislib</code> directory).
+WisardClassifier is a classifier method for machine learning accepting as input most common 
+data formats, such as ARFF, LibSVM, and CSV.
+
+WisardClassifier uses  WiSARD, a weighless neural network model of computation which
+learns and recognize binary inpiut patterns. For more details about this model please refer (and cite) to:
+
+```
+@CONFERENCE{DeGregorio2016,
+author={De Gregorio, M. and Giordano, M.},
+title={The WiSARD classifier},
+journal={ESANN 2016 - 24th European Symposium on Artificial Neural Networks},
+year={2016},
+pages={447-452},
+url={https://www.scopus.com/inward/record.uri?eid=2-s2.0-84994165233&partnerID=40&md5=c77502db0e36746bf85293361cb1f122},
+document_type={Conference Paper},
+source={Scopus},
+}
+```
+
+WiSARD implementation in C++ is included in sources in this distribution.
+The file <code>wisard_wrapper.pyx</code> is a cython wrapper for the integration
+WiSARD functions in Python. You can use and program WiSARD in Python 
+by simply importing in your python scripts the <code>wisard_wrapper</code> module.
+An example of the use of WiSARD in Python is discussed in the section "Testing WiSARD in Python".
+
+WisardClassifier is a Python implementation of a classifier based on WiSARD capabilities. 
+The classifier is designed to be compliant with the Scikit-Learn interface definition.
+WisardClassifier main class, methods and facilities are implemented in the <code>wisard.py</code> 
+script.
 
 ----------------------
 Build and setup (Linux, Mac OSX)
@@ -122,10 +149,16 @@ you need the following packages:
 Please refer to the documentation of these packages for installation.
 
 In this package a python script <code>wisard_classifier.py</code> is distributed to let users 
-execute WisardClasifier in python 
+execute WisardClassifier in python 
 
 ```bash
 $ python wisard_classifier.py -i <dataset>
+```
+
+For a complete list of script parameters you can read the command help:
+
+```bash
+python2.7 wisard_classifier.py -h
 ```
 
 Where <code>\<dataset\></code> can be any data file in ARFF, LIBSVM, or CSV format.
