@@ -16,6 +16,7 @@ cdef extern from "Discriminator.h" namespace "wnn":
         int getNRams()
         double getMaxMI()
         vector[double] getMI()
+        vector[int] getMapping()
         string toString(int)
         void TrainByTuple(vector[int]&) except +
         void Train(vector[double]&, vector[double]&, vector[double]&, int) except +
@@ -44,6 +45,8 @@ cdef class PyDiscriminator:
         return self.thisptr.getNRams()
     def getMI(self):
         return np.array(self.thisptr.getMI())
+    def getMapping(self):
+        return np.array(self.thisptr.getMapping())
     def Train(self, data, ranges, offsets, tics):
         self.thisptr.Train(data, ranges, offsets, tics)
     def TrainNoScale(self, data, tics):

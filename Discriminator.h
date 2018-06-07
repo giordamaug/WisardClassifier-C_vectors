@@ -36,6 +36,7 @@ namespace wnn {
         int getSize();
         double getMaxMI();
         std::vector<double> getMI();
+        std::vector<int> getMapping();
         void Train(std::vector<double> data, std::vector<double> ranges, std::vector<double> offsets, int n_tics);
         void TrainNoScale(std::vector<double> data, int n_tics);
         void TrainByTuple(std::vector<int> tuple);

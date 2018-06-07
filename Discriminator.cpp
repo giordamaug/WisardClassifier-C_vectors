@@ -227,6 +227,8 @@ namespace wnn {
         }
         return mi;
     }
+    std::vector<int> Discriminator::getMapping() { return map;
+    }
     std::string Discriminator::toString(int mode) {
         std::stringstream ss;
         
