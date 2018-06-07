@@ -13,21 +13,6 @@ import multiprocessing as mp
 from wisard_wrapper import *
 
 mypowers = 2**np.arange(32, dtype = np.uint32)[::]
-# UTILITY
-class color:
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[0;32m'
-    WHITEBLACK = '\033[1m\033[40;37m'
-    BLUEBLACK = '\033[1m\033[40;94m'
-    YELLOWBLACK = '\033[1m\033[40;93m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
 
 def printProgressBar(label,time,etime,basecolor, cursorcolor, linecnt,progress,size):
     barwidth = 70
