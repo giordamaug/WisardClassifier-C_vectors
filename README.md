@@ -163,4 +163,18 @@ For a complete list of script parameters you can read the command help:
 python2.7 wisard_classifier.py -h
 ```
 
+----------------------
+Testing WisardClassifier on KEEL datasets
+----------------------
+
+You can test WisardClassifier on a large set of classification problems you 
+find in the <code>keel-datasets</code> folder. Problem datasets were obtained from the
+KEEL archive (http://sci2s.ugr.es/keel/datasets.php) and transformed in LibSVM format.
+
+As an example, to test WisardClassifier on the 'wine' dataset with 32 bits and with a resolution of data discretization
+of 2018 distinct values, simply run:
+
+```bash
+$ python wisard_classifier.py -b 32 -z 2018 -i keel-datasets/wine.libsvm
+```
     
