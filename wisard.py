@@ -152,12 +152,15 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         n_jobs : integer, optional (default=1)
             The number of jobs to run in parallel for both `fit` and `predict`.
             If -1, then the number of jobs is set to the number of cores.
-            random_state : int, or 0, optional, default None
             If int, it is the number of paralle jobs;
             If 1, no parallel jonbs (sequential execution);
-            
-        by `np.random`.
-            debug : bool, optional, default True
+
+        random_state : int, or 0, optional, default None
+            seed for mapping random generation
+            -1 no seed is fixed (non-deterministic behavior)
+            0 or greater is the seed initialization
+
+        debug : bool, optional, default True
             enable debugging
         
         Attributes
