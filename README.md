@@ -25,15 +25,17 @@ WisardClassifier uses  WiSARD, a weighless neural network model of computation w
 learns and recognize binary inpiut patterns. For more details about this model please refer (and cite) to:
 
 ```
-@CONFERENCE{DeGregorio2016,
-author={De Gregorio, M. and Giordano, M.},
-title={The WiSARD classifier},
-journal={ESANN 2016 - 24th European Symposium on Artificial Neural Networks},
-year={2016},
-pages={447-452},
-url={https://www.scopus.com/inward/record.uri?eid=2-s2.0-84994165233&partnerID=40&md5=c77502db0e36746bf85293361cb1f122},
-document_type={Conference Paper},
-source={Scopus},
+@article{DEGREGORIO2018338,
+title = "An experimental evaluation of weightless neural networks for multi-class classification",
+journal = "Applied Soft Computing",
+volume = "72",
+pages = "338 - 354",
+year = "2018",
+issn = "1568-4946",
+doi = "https://doi.org/10.1016/j.asoc.2018.07.052",
+url = "http://www.sciencedirect.com/science/article/pii/S156849461830440X",
+author = "Massimo De Gregorio and Maurizio Giordano",
+keywords = "Weightless neural network, WiSARD, Machine learning"
 }
 ```
 
