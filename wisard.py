@@ -42,21 +42,21 @@ def compTime(deltatime,progress):
     tme = "{:0>2}:{:0>2}:{:02.0f}".format(int(hourse),int(minutese),secondse)
     return tm,tme
 
-def decide_onebyone((clf,data)):
+def decide_onebyone(clf,data):
     return [clf.wiznet_[cl].Classify(data, clf.ranges_, clf.offsets_, clf.notics) for cl in clf.classes_]
 
-def decide_onebyone_noscale((clf,data)):
+def decide_onebyone_noscale(clf,data):
     return [clf.wiznet_[cl].ClassifyNoScale(data, clf.notics) for cl in clf.classes_]
 
-def train_onebyone((clf,X,y)):
+def train_onebyone(clf,X,y):
     for i,data in enumerate(X):
         clf.wiznet_[clf.classes_[y[i]]].Train(data,clf.ranges_,clf.offsets_, clf.notics)
 
-def train_onebyone_noscale((clf,X,y)):
+def train_onebyone_noscale(clf,X,y):
     for i,data in enumerate(X):
         clf.wiznet_[clf.classes_[y[i]]].TrainNoScale(data, self.notics)
 
-def decide_onebyone_b((clf,data)):
+def decide_onebyone_b(clf,data):
     b = clf.b_def
     confidence = 0.0
     res_disc_list = [clf.wiznet_[cl].Response(data,clf.ranges_,clf.offsets_, clf.notics) for cl in clf.classes_]
@@ -76,7 +76,7 @@ def decide_onebyone_b((clf,data)):
         result = np.array(result_partial)/result_sum
     return result
 
-def decide_onebyone_b_noscale((clf,data)):
+def decide_onebyone_b_noscale(clf,data):
     b = clf.b_def
     confidence = 0.0
     res_disc_list = [clf.wiznet_[cl].ResponseNoScale(data, clf.notics) for cl in clf.classes_]
