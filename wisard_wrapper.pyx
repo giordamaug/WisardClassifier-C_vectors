@@ -32,7 +32,7 @@ cdef extern from "Discriminator.h" namespace "wnn":
 cdef class PyDiscriminator:
     cdef Discriminator *thisptr      # hold a C++ instance which we're wrapping
     def __cinit__(self, bits, size, maptype="random"):
-        self.thisptr = new Discriminator(bits, size, maptype)
+        self.thisptr = new Discriminator(bits, size, maptype.encode('utf-8'))
     def __dealloc__(self):
         del self.thisptr
     def getNBits(self):
