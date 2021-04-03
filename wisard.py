@@ -436,7 +436,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.starttm_ = time.time()
         self.progress_ = 0.01
         for data in X:
-            res = decide_onebyone_b((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
             cnt += 1
             tm,tme = compTime(time.time()-self.starttm_,self.progress_)
