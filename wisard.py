@@ -402,7 +402,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
     def decision_function_seq_b(self,X):    # sequential version (no debug with bleaching)
         D = np.empty(shape=[0, len(self.classes_)])
         for data in X:
-            res = decide_onebyone_b((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
         return D
 
@@ -450,7 +450,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.starttm_ = time.time()
         self.progress_ = 0.01
         for data in X:
-            res = decide_onebyone_b_noscale((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b_noscale(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
             cnt += 1
             tm,tme = compTime(time.time()-self.starttm_,self.progress_)
