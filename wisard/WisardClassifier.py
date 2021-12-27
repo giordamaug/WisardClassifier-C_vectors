@@ -45,7 +45,7 @@ def compTime(deltatime,progress):
 def decide_onebyone(clf,data):
     return [clf.wiznet_[cl].Classify(data, clf.ranges_, clf.offsets_, clf.notics) for cl in clf.classes_]
 
-def decide_onebyone_noscale((clf,data)):
+def decide_onebyone_noscale(clf,data):
     return [clf.wiznet_[cl].ClassifyNoScale(data, clf.notics) for cl in clf.classes_]
 
 def train_onebyone(clf,X,y):
@@ -402,7 +402,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
     def decision_function_seq_b(self,X):    # sequential version (no debug with bleaching)
         D = np.empty(shape=[0, len(self.classes_)])
         for data in X:
-            res = decide_onebyone_b((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
         return D
 
@@ -436,7 +436,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.starttm_ = time.time()
         self.progress_ = 0.01
         for data in X:
-            res = decide_onebyone_b((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
             cnt += 1
             tm,tme = compTime(time.time()-self.starttm_,self.progress_)
@@ -450,7 +450,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.starttm_ = time.time()
         self.progress_ = 0.01
         for data in X:
-            res = decide_onebyone_b_noscale((self,data))  # classify with bleaching (Work in progress)
+            res = decide_onebyone_b_noscale(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
             cnt += 1
             tm,tme = compTime(time.time()-self.starttm_,self.progress_)
