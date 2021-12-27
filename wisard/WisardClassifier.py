@@ -481,7 +481,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.size_, self.nfeatures_ = X.shape
         self.npixels_ = self.notics * self.nfeatures_
         for cl in self.classes_:
-            self.wiznet_[cl] = PyDiscriminator(self.nobits,self.npixels_, self.mapping)
+            self.wiznet_[cl] = PyDiscriminator(self.nobits,self.npixels_)
             #print(self.wiznet_[cl].toString())
             self.nrams_ = self.wiznet_[cl].getNRams()
         self.ranges_ = X.max(axis=0)-X.min(axis=0)
