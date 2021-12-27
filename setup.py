@@ -1,3 +1,4 @@
+from setuptools import setup
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -16,8 +17,7 @@ setup(name                = 'Wisard Library',
                              '...',
                              ],
       license             = 'GNU Lesser General Public License v2 or later (LGPLv2+)',
-      packages            = ['wisard_classifier'],
-      scripts             = ['wisard_classifier.py'],
+      packages            = ['wisard'],
       ext_modules=[Extension("wisard_wrapper",
                              ["wisard_wrapper.pyx",
                               "Discriminator.cpp", "Ram.cpp"],
