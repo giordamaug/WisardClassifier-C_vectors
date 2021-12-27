@@ -311,14 +311,14 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[len(X), len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        D = pool.starmap(decide_onebyone, jobs_args)
+        D = pool.map(decide_onebyone, jobs_args)
         return D
 
     def decision_function_par_noscale(self,X):      # parallel version (no debug no bleaching)
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[len(X), len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        D = pool.starmap(decide_onebyone_noscale, jobs_args)
+        D = pool.map(decide_onebyone_noscale, jobs_args)
         return D
 
     def decision_function_seq(self,X):      # sequential version (no debug no bleaching)
@@ -339,7 +339,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         jobs_args = [(self,data) for data in X]
         self.starttm_ = time.time()
         self.progress_ = 0.01
-        D = pool.starmap(decide_onebyone, jobs_args)
+        D = pool.map(decide_onebyone, jobs_args)
         tm,tme = compTime(time.time()-self.starttm_,self.progress_)
         self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
         sys.stdout.write('\n')
@@ -351,7 +351,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         jobs_args = [(self,data) for data in X]
         self.starttm_ = time.time()
         self.progress_ = 0.01
-        D = pool.starmap(decide_onebyone_noscale, jobs_args)
+        D = pool.map(decide_onebyone_noscale, jobs_args)
         tm,tme = compTime(time.time()-self.starttm_,self.progress_)
         self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
         sys.stdout.write('\n')
@@ -389,14 +389,14 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        D = pool.starmap(decide_onebyone_b, jobs_args)
+        D = pool.map(decide_onebyone_b, jobs_args)
         return D
 
     def decision_function_par_b_noscale(self,X):    # parallel version (no debug with bleaching)
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        D = pool.starmap(decide_onebyone_b_noscale, jobs_args)
+        D = pool.map(decide_onebyone_b_noscale, jobs_args)
         return D
 
     def decision_function_seq_b(self,X):    # sequential version (no debug with bleaching)
@@ -412,7 +412,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         jobs_args = [(self,data) for data in X]
         self.starttm_ = time.time()
         self.progress_ = 0.01
-        D = pool.starmap(decide_onebyone_b, jobs_args)
+        D = pool.map(decide_onebyone_b, jobs_args)
         tm,tme = compTime(time.time()-self.starttm_,self.progress_)
         self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
         sys.stdout.write('\n')
@@ -424,7 +424,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         jobs_args = [(self,data) for data in X]
         self.starttm_ = time.time()
         self.progress_ = 0.01
-        D = pool.starmap(decide_onebyone_b_noscale, jobs_args)
+        D = pool.map(decide_onebyone_b_noscale, jobs_args)
         tm,tme = compTime(time.time()-self.starttm_,self.progress_)
         self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
         sys.stdout.write('\n')
