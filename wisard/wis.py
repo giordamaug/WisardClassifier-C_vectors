@@ -6,7 +6,7 @@
 """
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
-import multiprocessing as mp
+import pathos.multiprocessing as mp
 
 from wisard.wisard_wrapper import *
 from tqdm import tqdm
@@ -15,79 +15,7 @@ import functools
 def nop(it, *a, **k):
     return it
 
-def vprint(obj, verbose, end='\n'):
-	if verbose:
-		print(obj, end=end)
-	return
-
 mypowers = 2**np.arange(32, dtype = np.uint32)[::]
-
-def decide(args):
-    print(args)
-    wiznet,ranges,offsets,notics,nclasses,data = args
-    #print('p', wiznet, 'data', data)
-    return [wiznet[cl].Classify(data, ranges, offsets, notics) for cl in range(nclasses)]
-
-def pdecide_onebyone(clf,data):
-    print('x', clf.wiznet_.keys(), 'data', data)
-    return [clf.wiznet_[cl].Classify(data, clf.ranges_, clf.offsets_, clf.notics) for cl in range(clf.nclasses_)]
-
-def decide_onebyone(args):
-    clf, data = args
-    print('F', clf, 'data', data)
-    #return []
-    return [clf.Classify(data, clf.ranges_, clf.offsets_, clf.notics) for cl in range(clf.nclasses_)]
-
-def decide_onebyone_noscale(clf,data):
-    return [clf.wiznet_[cl].ClassifyNoScale(data, clf.notics) for cl in clf.classes_]
-
-def train_onebyone(clf,X,y):
-    for i,data in enumerate(X):
-        clf.wiznet_[clf.classes_[y[i]]].Train(data,clf.ranges_,clf.offsets_, clf.notics)
-
-def train_onebyone_noscale(clf,X,y):
-    for i,data in enumerate(X):
-        clf.wiznet_[clf.classes_[y[i]]].TrainNoScale(data, clf.notics)
-
-def decide_onebyone_b(clf,data):
-    b = clf.b_def
-    confidence = 0.0
-    res_disc_list = [clf.wiznet_[cl].Response(data,clf.ranges_,clf.offsets_, clf.notics) for cl in clf.classes_]
-    res_disc = np.array(res_disc_list)
-    result_partial = None
-    while confidence < clf.conf_def:
-        result_partial = np.sum(res_disc >= b, axis=1)
-        confidence = calc_confidence(result_partial)
-        b += 1
-        if(np.sum(result_partial) == 0):
-            result_partial = np.sum(res_disc >= 1, axis=1)
-            break
-    result_sum = np.sum(result_partial, dtype=np.float32)
-    if result_sum==0.0:
-        result = np.array(np.sum(res_disc, axis=1))/float(clf.nrams_)
-    else:
-        result = np.array(result_partial)/result_sum
-    return result
-
-def decide_onebyone_b_noscale(clf,data):
-    b = clf.b_def
-    confidence = 0.0
-    res_disc_list = [clf.wiznet_[cl].ResponseNoScale(data, clf.notics) for cl in clf.classes_]
-    res_disc = np.array(res_disc_list)
-    result_partial = None
-    while confidence < clf.conf_def:
-        result_partial = np.sum(res_disc >= b, axis=1)
-        confidence = calc_confidence(result_partial)
-        b += 1
-        if(np.sum(result_partial) == 0):
-            result_partial = np.sum(res_disc >= 1, axis=1)
-            break
-    result_sum = np.sum(result_partial, dtype=np.float32)
-    if result_sum==0.0:
-        result = np.array(np.sum(res_disc, axis=1))/float(clf.nrams_)
-    else:
-        result = np.array(result_partial)/result_sum
-    return result
 
 def calc_confidence(results):
     # get max value
@@ -228,7 +156,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
     classes_ = None
     progress_ = 0.0
     starttm_ = 0
-    def __init__(self,n_bits=8,n_tics=256,mapping='random',debug=False,bleaching=True,default_bleaching=1,confidence_bleaching=0.01,n_jobs=1,random_state=0):
+    def __init__(self,n_bits=8,n_tics=256,mapping='random',debug=False,bleaching=True,default_bleaching=1,confidence_bleaching=0.01,n_jobs=1,random_state=0,scaled=False):
         if (not isinstance(n_bits, int) or n_bits<1 or n_bits>64):
             raise Exception('number of bits must be an integer between 1 and 64')
         if (not isinstance(n_tics, int) or n_tics<1):
@@ -251,7 +179,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.notics = n_tics
         self.mapping = mapping
         self.njobs = n_jobs
-        self.scaled = False
+        self.scaled = scaled
         if self.njobs == 1:
             self.parallel = False  # set sequential mode
         else:
@@ -265,6 +193,10 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.seed = random_state
         self.tqdm = tqdm if self.debug else nop
         return
+    def __repr__(self):
+        return "WisardClassifier(bits=%r,tics=%r,map=%r)"%(self.nobits,self.notics,self.mapping)
+    def __str__(self):
+        return "WisardClassifier(bits=%r,tics=%r,map=%r,bleach=%r,debug=%r,scaled=%r)"%(self.nobits,self.notics,self.mapping,self.bleaching, self.debug, self.scaled)
 
     # creates input-neurons mappings lists
     def train_seq_debug(self, X, y):
@@ -274,9 +206,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
 
     def train_seq(self, X, y):
         for i,data in enumerate(self.tqdm(X)):
-            #self.wiznet_[self.classes_[y[i]]].Train(data, self.ranges_, self.offsets_, self.notics)
             self.wiznet_[y[i]].Train(data, self.ranges_, self.offsets_, self.notics)
-        print('t', self.wiznet_)
         return self
 
     def train_seq_debug_noscale(self, X, y):
@@ -289,36 +219,129 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
             self.wiznet_[y[i]].TrainNoScale(data, self.notics)
         return self
 
-    def ddecide_onebyone(self, data):
-        print('p', self.wiznet_, 'data', data)
-        return [self.wiznet_[cl].Classify(data, self.ranges_, self.offsets_, self.notics) for cl in range(self.nclasses_)]
-
-    def decision_function_par(self,X):      # parallel version (no debug no bleaching)
-        with mp.Pool(processes=self.njobs) as pool:
-            print("WW", self.wiznet_[0])
-            items = [(self.wiznet_[0],d) for d in X]
-            D = pool.map(decide_onebyone, items)
+    def decision_function_par(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            D = pool.map(lambda data: [self.wiznet_[cl].Classify(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)], jobs_args)
             return D
-    
-    def decision_function_par_old(self,X):      # parallel version (no debug no bleaching)
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[len(X), len(self.classes_)])
-        print("DSHAPE", D.shape)
-        #jobs_args = [(self,data) for data in X]
-        jobs_args = [data for data in X]
-        func = self.ddecide_onebyone
-        D = pool.starmap(func(jobs_args))
-        print("XXX", D)
-        pool.close()
-        pool.join()
-        return D
 
-    def decision_function_par_noscale(self,X):      # parallel version (no debug no bleaching)
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[len(X), len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_noscale, jobs_args)
-        return D
+    def decision_function_par_noscale(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            D = pool.map(lambda data: [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in range(self.nclasses_)], jobs_args)
+            return D
+
+    def decision_function_par_debug(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            D = pool.map(lambda data: [self.wiznet_[cl].Classify(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)], self.tqdm(jobs_args))
+            return D
+
+    def decision_function_par_debug_noscale(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            D = pool.map(lambda data: [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in range(self.nclasses_)], self.tqdm(jobs_args))
+            return D
+
+    def decision_function_par_b(self,X):    # parallel version (no debug with bleaching)
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            def func(data):
+                b = self.b_def
+                confidence = 0.0
+                res_disc_list = [self.wiznet_[cl].Response(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)]
+                res_disc = np.array(res_disc_list)
+                result_partial = None
+                while confidence < self.conf_def:
+                    result_partial = np.sum(res_disc >= b, axis=1)
+                    confidence = calc_confidence(result_partial)
+                    b += 1
+                    if(np.sum(result_partial) == 0):
+                        result_partial = np.sum(res_disc >= 1, axis=1)
+                        break
+                result_sum = np.sum(result_partial, dtype=np.float32)
+                if result_sum==0.0:
+                    result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+                else:
+                    result = np.array(result_partial)/result_sum
+                return result
+            D = pool.map(func, jobs_args)
+            return D
+
+    def decision_function_par_b_noscale(self,X):    # parallel version (no debug with bleaching)
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            def func(data):
+                b = self.b_def
+                confidence = 0.0
+                res_disc_list = [self.wiznet_[cl].ResponseNoScale(data, self.notics) for cl in range(self.nclasses_)]
+                res_disc = np.array(res_disc_list)
+                result_partial = None
+                while confidence < self.conf_def:
+                    result_partial = np.sum(res_disc >= b, axis=1)
+                    confidence = calc_confidence(result_partial)
+                    b += 1
+                    if(np.sum(result_partial) == 0):
+                        result_partial = np.sum(res_disc >= 1, axis=1)
+                        break
+                result_sum = np.sum(result_partial, dtype=np.float32)
+                if result_sum==0.0:
+                    result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+                else:
+                    result = np.array(result_partial)/result_sum
+                return result
+            D = pool.map(func, jobs_args)
+            return D
+
+    def decision_function_par_b_debug(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            def func(data):
+                b = self.b_def
+                confidence = 0.0
+                res_disc_list = [self.wiznet_[cl].Response(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)]
+                res_disc = np.array(res_disc_list)
+                result_partial = None
+                while confidence < self.conf_def:
+                    result_partial = np.sum(res_disc >= b, axis=1)
+                    confidence = calc_confidence(result_partial)
+                    b += 1
+                    if(np.sum(result_partial) == 0):
+                        result_partial = np.sum(res_disc >= 1, axis=1)
+                        break
+                result_sum = np.sum(result_partial, dtype=np.float32)
+                if result_sum==0.0:
+                    result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+                else:
+                    result = np.array(result_partial)/result_sum
+                return result
+            D = pool.map(func, self.tqdm(jobs_args))
+            return D
+
+    def decision_function_par_b_debug_noscale(self,X):
+        with mp.ProcessingPool(nodes=self.njobs) as pool:
+            jobs_args = [data for data in X]
+            def func(data):
+                b = self.b_def
+                confidence = 0.0
+                res_disc_list = [self.wiznet_[cl].ResponseNoScale(data, self.notics) for cl in range(self.nclasses_)]
+                res_disc = np.array(res_disc_list)
+                result_partial = None
+                while confidence < self.conf_def:
+                    result_partial = np.sum(res_disc >= b, axis=1)
+                    confidence = calc_confidence(result_partial)
+                    b += 1
+                    if(np.sum(result_partial) == 0):
+                        result_partial = np.sum(res_disc >= 1, axis=1)
+                        break
+                result_sum = np.sum(result_partial, dtype=np.float32)
+                if result_sum==0.0:
+                    result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+                else:
+                    result = np.array(result_partial)/result_sum
+                return result
+            D = pool.map(func, self.tqdm(jobs_args))
+            return D
 
     def decision_function_seq(self,X):      # sequential version (no debug no bleaching)
         D = np.empty(shape=[len(X), len(self.classes_)])
@@ -329,89 +352,100 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
     def decision_function_seq_noscale(self,X):      # sequential version (no debug no bleaching)
         D = np.empty(shape=[len(X), len(self.classes_)])
         for i,data in enumerate(X):
-            D[i] = [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in self.classes_]
-        return D
-
-    def decision_function_par_debug(self,X):
-        with mp.Pool(processes=self.njobs) as pool:
-            print("WW", self.wiznet_[0])
-            items = [(self.wiznet_[0],d) for d in X]
-            func = decide_onebyone
-            D = pool.map(func, items)
-            return D
-
-    def decision_function_par_debug_noscale(self,X):
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[0, len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_noscale, jobs_args)
+            D[i] = [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in range(self.nclasses_)]
         return D
 
     def decision_function_seq_debug(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
         for data in self.tqdm(X):
-            res = [self.wiznet_[cl].Classify(data,self.ranges_,self.offsets_, self.notics) for cl in self.classes_]
+            res = [self.wiznet_[cl].Classify(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)]
             D = np.append(D, [res],axis=0)
         return D
 
     def decision_function_seq_debug_noscale(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
         for data in self.tqdm(X):
-            res = [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in self.classes_]
+            res = [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in range(self.nclasses_)]
             D = np.append(D, [res],axis=0)
-        return D
-
-    def decision_function_par_b(self,X):    # parallel version (no debug with bleaching)
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[0, len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_b, jobs_args)
-        return D
-
-    def decision_function_par_b_noscale(self,X):    # parallel version (no debug with bleaching)
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[0, len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_b_noscale, jobs_args)
         return D
 
     def decision_function_seq_b(self,X):    # sequential version (no debug with bleaching)
         D = np.empty(shape=[0, len(self.classes_)])
+        def func(data):
+            b = self.b_def
+            confidence = 0.0
+            res_disc_list = [self.wiznet_[cl].Response(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)]
+            res_disc = np.array(res_disc_list)
+            result_partial = None
+            while confidence < self.conf_def:
+                result_partial = np.sum(res_disc >= b, axis=1)
+                confidence = calc_confidence(result_partial)
+                b += 1
+                if(np.sum(result_partial) == 0):
+                    result_partial = np.sum(res_disc >= 1, axis=1)
+                    break
+            result_sum = np.sum(result_partial, dtype=np.float32)
+            if result_sum==0.0:
+                result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+            else:
+                result = np.array(result_partial)/result_sum
+            return result
         for data in self.tqdm(X):
-            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
+            res = func(data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
-        return D
-
-    def decision_function_par_b_debug(self,X):
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[0, len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_b, jobs_args)
-        return D
-
-    def decision_function_par_b_debug_noscale(self,X):
-        pool = mp.Pool(processes=self.njobs)
-        D = np.empty(shape=[0, len(self.classes_)])
-        jobs_args = [(self,data) for data in X]
-        D = pool.map(decide_onebyone_b_noscale, jobs_args)
         return D
 
     def decision_function_seq_b_debug(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
+        def func(data):
+            b = self.b_def
+            confidence = 0.0
+            res_disc_list = [self.wiznet_[cl].Response(data,self.ranges_,self.offsets_, self.notics) for cl in range(self.nclasses_)]
+            res_disc = np.array(res_disc_list)
+            result_partial = None
+            while confidence < self.conf_def:
+                result_partial = np.sum(res_disc >= b, axis=1)
+                confidence = calc_confidence(result_partial)
+                b += 1
+                if(np.sum(result_partial) == 0):
+                    result_partial = np.sum(res_disc >= 1, axis=1)
+                    break
+            result_sum = np.sum(result_partial, dtype=np.float32)
+            if result_sum==0.0:
+                result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+            else:
+                result = np.array(result_partial)/result_sum
+            return result
         for data in self.tqdm(X):
-            res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
+            res = func(data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
         return D
 
     def decision_function_seq_b_debug_noscale(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
+        def func(data):
+            b = self.b_def
+            confidence = 0.0
+            res_disc_list = [self.wiznet_[cl].ResponseNoScale(data, self.notics) for cl in range(self.nclasses_)]
+            res_disc = np.array(res_disc_list)
+            result_partial = None
+            while confidence < self.conf_def:
+                result_partial = np.sum(res_disc >= b, axis=1)
+                confidence = calc_confidence(result_partial)
+                b += 1
+                if(np.sum(result_partial) == 0):
+                    result_partial = np.sum(res_disc >= 1, axis=1)
+                    break
+            result_sum = np.sum(result_partial, dtype=np.float32)
+            if result_sum==0.0:
+                result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+            else:
+                result = np.array(result_partial)/result_sum
+            return result
         for data in self.tqdm(X):
-            res = decide_onebyone_b_noscale(self,data)  # classify with bleaching (Work in progress)
+            res = func(data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
         return D
-
-    def decision_function_(self,X):
-        None
 
     def fit(self, X, y):
         """Fit the WiSARD model to data matrix X and target(s) y.
@@ -434,7 +468,6 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         self.npixels_ = self.notics * self.nfeatures_
         for cl in range(self.nclasses_):
             self.wiznet_[cl] = PyDiscriminator(self.nobits,self.npixels_)
-            #print(self.wiznet_[cl].toString())
             self.nrams_ = self.wiznet_[cl].getNRams()
         self.ranges_ = X.max(axis=0)-X.min(axis=0)
         self.offsets_ = X.min(axis=0)
@@ -514,7 +547,6 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
                         D = self.decision_function_par_b(X)
                     else:
                         D = self.decision_function_par(X)
-                print("DDD", type(D),D)
             else:
                 if self.debug:
                     if self.bleaching:
@@ -558,8 +590,4 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
             """
         for parameter, value in parameters.items():
             setattr(self, parameter, value)
-        return self
-
-    def print_discr(self, cl):
-        printDiscr(self.wiznet_[cl])
-    
+        return self    
