@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 import multiprocessing as mp
 
-from wisard_wrapper import *
+from wisard.wisard_wrapper import *
 
 mypowers = 2**np.arange(32, dtype = np.uint32)[::]
 
