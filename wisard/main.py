@@ -7,9 +7,9 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import scipy.sparse as sps
 from scipy.io import arff
 # import wisard classifier library
-from wis import WisardClassifier
+from wisard.WisardClassifier import WisardClassifier
 #import utilities for matplot
-from utilities import *
+from wisard.utils import *
 import argparse
 import sys,os
 # (Try) import matplot for graphics
@@ -32,6 +32,7 @@ parser.add_argument('-z', "--ntics", metavar='<ticno>', type=int, help='number o
 parser.add_argument('-p', "--njobs", metavar='<njobs>', type=int, help='number of cores used for parallel jobs (default is one core = 1)', default=4,required=False)
 parser.add_argument('-d', "--debug", action='store_true', help='enable progress monitoring (disabled by default)', required=False)
 parser.add_argument('-B', "--bleach", action='store_true', help='enable bleaching (disabled by default)', required=False)
+parser.add_argument('-X', "--display", action='store_true', help='enable matplot display (disabled by default)', required=False)
 
 
 def main(argv):
@@ -46,7 +47,7 @@ def main(argv):
         data, meta = arff.loadarff(open(datafile, "r"))
         try:
             y = np.array(data[args.labelname])
-            used_attrnames = [m for m in meta._attrnames if m != args.labelname]
+            used_attrnames = [m for m in meta.names() if m != args.labelname]
             X = np.array([list(x) for x in data[used_attrnames]])
         except:
             raise ValueError("Cannot find label %s in dataset" % args.labelname)
@@ -73,13 +74,12 @@ def main(argv):
     print("Dataset %s X=%r y=%r" % (os.path.basename(datafile).split(".")[0],X.shape,tuple(class_names)))
 
     clf = WisardClassifier(n_bits=args.nbits,n_tics=args.ntics,debug=args.debug,bleaching=args.bleach,random_state=848484848, n_jobs=args.njobs)
-    print(clf.print_discr(0))
     y_pred = cross_val_predict(clf, X, y, cv=args.cvfolds)
     print("Accuracy: %.3f" % accuracy_score(y, y_pred))
     print("F-Measure: %.3f" % f1_score(y, y_pred, average='weighted'))
 
     cm = confusion_matrix(y, y_pred)
-    if matplotfound:
+    if matplotfound and args.display:
         plt.figure()
         plot_confusion_matrix(cm, classes=class_names,title='Confusion matrix')
         plt.show()
