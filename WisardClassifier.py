@@ -11,36 +11,8 @@ import time
 import multiprocessing as mp
 
 from wisard_wrapper import *
-from wisard.utilities import color
 
 mypowers = 2**np.arange(32, dtype = np.uint32)[::]
-
-def printProgressBar(label,time,etime,basecolor, cursorcolor, linecnt,progress,size):
-    barwidth = 70
-    progress = linecnt / float(size);
-    str = '%s |' % label
-    pos = int(barwidth * progress)
-    str += basecolor
-    for p in range(barwidth):
-        if p < pos:
-            str += u'\u2588'
-        elif p == pos:
-            str += color.END + cursorcolor + u'\u2588' + color.END + basecolor
-        else:
-            str += u'\u2591'
-    str += color.END + '| ' + "{:>3}".format(int(progress * 100.0)) + ' % ' + color.YELLOWBLACK + ' ' + etime + ' ' + color.WHITEBLACK + time + ' ' + color.END
-    sys.stdout.write("\r%s" % str.encode('utf-8'))
-    sys.stdout.flush()
-    return progress
-
-def compTime(deltatime,progress):
-    hours, rem = divmod(deltatime*((1.0-progress) / progress), 3600)
-    hourse, reme = divmod(deltatime, 3600)
-    minutes, seconds = divmod(rem, 60)
-    minutese, secondse = divmod(reme, 60)
-    tm = "{:0>2}:{:0>2}:{:02.0f}".format(int(hours),int(minutes),seconds)
-    tme = "{:0>2}:{:0>2}:{:02.0f}".format(int(hourse),int(minutese),secondse)
-    return tm,tme
 
 def decide_onebyone(clf,data):
     return [clf.wiznet_[cl].Classify(data, clf.ranges_, clf.offsets_, clf.notics) for cl in clf.classes_]
