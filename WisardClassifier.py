@@ -7,7 +7,6 @@
 import sys,os
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
-import time
 import multiprocessing as mp
 
 from wisard_wrapper import *
@@ -246,15 +245,8 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
 
     # creates input-neurons mappings lists
     def train_seq_debug(self, X, y):
-        self.progress_ = 0.01
-        self.starttm_ = time.time()
         for i,data in enumerate(X):
             self.wiznet_[self.classes_[y[i]]].Train(data, self.ranges_, self.offsets_, self.notics)
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            if self.debug:
-                self.progress_ = printProgressBar('train', tm, tme, color.BLUE, color.RED, i+1,self.progress_,len(X))
-        if self.debug:
-            sys.stdout.write('\n')
         return self
 
     def train_seq(self, X, y):
@@ -263,15 +255,8 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         return self
 
     def train_seq_debug_noscale(self, X, y):
-        self.progress_ = 0.01
-        self.starttm_ = time.time()
         for i,data in enumerate(X):
             self.wiznet_[self.classes_[y[i]]].Train(data, self.ranges_, self.offsets_, self.notics)
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            if self.debug:
-                self.progress_ = printProgressBar('train', tm, tme, color.BLUE, color.RED, i+1,self.progress_,len(X))
-        if self.debug:
-            sys.stdout.write('\n')
         return self
 
     def train_seq_noscale(self, X, y):
@@ -309,52 +294,28 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         D = pool.starmap(decide_onebyone, jobs_args)
-        tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-        self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_par_debug_noscale(self,X):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         D = pool.starmap(decide_onebyone_noscale, jobs_args)
-        tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-        self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_seq_debug(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
-        cnt = 0
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         for data in X:
             res = [self.wiznet_[cl].Classify(data,self.ranges_,self.offsets_, self.notics) for cl in self.classes_]
             D = np.append(D, [res],axis=0)
-            cnt += 1
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, cnt,self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_seq_debug_noscale(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
-        cnt = 0
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         for data in X:
             res = [self.wiznet_[cl].ClassifyNoScale(data, self.notics) for cl in self.classes_]
             D = np.append(D, [res],axis=0)
-            cnt += 1
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, cnt,self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_par_b(self,X):    # parallel version (no debug with bleaching)
@@ -382,52 +343,28 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         D = pool.starmap(decide_onebyone_b, jobs_args)
-        tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-        self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_par_b_debug_noscale(self,X):
         pool = mp.Pool(processes=self.njobs)
         D = np.empty(shape=[0, len(self.classes_)])
         jobs_args = [(self,data) for data in X]
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         D = pool.starmap(decide_onebyone_b_noscale, jobs_args)
-        tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-        self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, len(X),self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_seq_b_debug(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
-        cnt = 0
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         for data in X:
             res = decide_onebyone_b(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
-            cnt += 1
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, cnt,self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_seq_b_debug_noscale(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
-        cnt = 0
-        self.starttm_ = time.time()
-        self.progress_ = 0.01
         for data in X:
             res = decide_onebyone_b_noscale(self,data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
-            cnt += 1
-            tm,tme = compTime(time.time()-self.starttm_,self.progress_)
-            self.progress_ = printProgressBar('test ',tm,tme,color.GREEN, color.RED, cnt,self.progress_,len(X))
-        sys.stdout.write('\n')
         return D
 
     def decision_function_(self,X):
