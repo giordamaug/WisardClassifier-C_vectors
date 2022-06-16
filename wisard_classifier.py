@@ -46,7 +46,7 @@ def main(argv):
         data, meta = arff.loadarff(open(datafile, "r"))
         try:
             y = np.array(data[args.labelname])
-            used_attrnames = [m for m in meta._attrnames if m != args.labelname]
+            used_attrnames = [m for m in meta._attributes.keys() if m != args.labelname]
             X = np.array([list(x) for x in data[used_attrnames]])
         except:
             raise ValueError("Cannot find label %s in dataset" % args.labelname)
