@@ -3,23 +3,6 @@ from libcpp.vector cimport vector
 from libcpp.algorithm cimport sort as stdsort
 from libcpp.string cimport string
 
-# cython: c_string_type=unicode, c_string_encoding=utf8
-from cpython.version cimport PY_MAJOR_VERSION
-
-cdef unicode _text(s):
-    if type(s) is unicode:
-        return <unicode>s
-    elif PY_MAJOR_VERSION < 3 and isinstance(s, bytes):
-        return (<bytes>s).decode('ascii')       
-    elif isinstance(s, unicode):
-        return unicode(s)
-    else:
-        raise TypeError("Could not convert to unicode.")
-
-cdef string _string(basestring s) except *:
-    cdef string c_str = _text(s).encode("utf-8")
-    return c_str
-    
 cdef extern from "Discriminator.h" namespace "wnn":
     cdef cppclass Discriminator:
         Discriminator(int, int, string)
@@ -49,7 +32,7 @@ cdef extern from "Discriminator.h" namespace "wnn":
 cdef class PyDiscriminator:
     cdef Discriminator *thisptr      # hold a C++ instance which we're wrapping
     def __cinit__(self, bits, size, maptype="random"):
-        self.thisptr = new Discriminator(bits, size, _string(maptype))
+        self.thisptr = new Discriminator(bits, size, maptype.encode('utf-8'))
     def __dealloc__(self):
         del self.thisptr
     def getNBits(self):
