@@ -177,6 +177,6 @@ As an example, to test WisardClassifier on the 'wine' dataset with 32 bits and w
 of 2018 distinct values, simply run:
 
 ```bash
-$ python wisard_classifier.py -b 32 -z 2018 -i KEEL-datasets/wine.libsvm
+$ python wisard_classifier.py -b 32 -z 2018 -i KEEL_datasets/wine.libsvm
 ```
     

@@ -53,7 +53,7 @@ def main(argv):
         print(X.dtype)
         print(y.dtype)
     elif datafile.endswith('.libsvm'):
-        X, y = load_svmlight_file(open(datafile, "r"))
+        X, y = load_svmlight_file(datafile, "r")
         if sps.issparse(X):
             X = X.toarray()
     elif datafile.endswith('.csv'):
