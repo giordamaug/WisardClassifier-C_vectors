@@ -78,6 +78,8 @@ modules:
 
 3. matplotlib (optional) (https://matplotlib.org)
 
+4. Optuna (optional) (https://matplotlib.org](https://optuna.readthedocs.io)
+
 Please refer to the documentation of these packages for installation.
 
 Once you have set the python programming framework, you can use the file <code>test.py</code> simple
