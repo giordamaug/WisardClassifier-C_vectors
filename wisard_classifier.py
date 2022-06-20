@@ -36,25 +36,36 @@ parser.add_argument('-f', "--cvfolds", metavar='<cvfolds>', type=int, help='numb
 parser.add_argument('-z', "--ntics", metavar='<ticno>', type=int, help='number of tics for real discretization (default is 1024)', default=1024,required=False)
 parser.add_argument('-p', "--njobs", metavar='<njobs>', type=int, help='number of cores used for parallel jobs (default is one core = 1)', default=1,required=False)
 parser.add_argument('-d', "--debug", metavar='<debug>', type=bool, help='enable progress monitoring (enabled by default)', default=True,required=False)
-parser.add_argument('-O', "--optuna", action='store_true', default=False, required=False)
+parser.add_argument('-O', "--optuna",  help='enable optuna optimization of params (disabled by default)', action='store_true', default=False, required=False)
+parser.add_argument('-B', "--bleaching", action='store_true', default=False, required=False)
+parser.add_argument('-C', "--withcv", help='set optuna objective with 5-fold (disabled by default)', action='store_true', default=False, required=False)
 parser.add_argument('-t', "--trials", metavar='<trials>', type=int, help='number of trials (default is 100)', default=100,required=False)
 
 # Define a simple 2-dimensional objective function whose minimum value is -1 when (x, y) = (0, -1).
-def objective(trial, datafile, labelname, labelpos):
+def objective(trial, datafile, labelname, labelpos, bleaching=False):
     data, target = load_dataset(datafile, labelname, labelpos)
-    X_train, X_val, y_train, y_val = train_test_split(data, target, test_size=0.10)
+    X_train, X_val, y_train, y_val = train_test_split(data, target, test_size=0.10, stratify=target)
 
     nbits = trial.suggest_int('n_bits', 2, 32, step=1)
     ntics = trial.suggest_int('n_tics', 32, 4096, step=32)
     #bleaching=trial.suggest_int('bleaching', 0, 1, step=1)
-    clf = WisardClassifier(n_bits=nbits, n_tics=ntics, bleaching=False, #if bleaching==1 else False, 
-       random_state=848484848)
+    clf = WisardClassifier(n_bits=nbits, n_tics=ntics, bleaching=bleaching, random_state=848484848)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_val)
 
     accuracy = sklearn.metrics.accuracy_score(y_val, y_pred)
     #f1 = sklearn.metrics.f1_score(y_val, y_pred, average='weighted')
     return accuracy
+
+def objectivecv(trial, datafile, labelname, labelpos, bleaching=False):
+    data, target = load_dataset(datafile, labelname, labelpos)
+
+    nbits = trial.suggest_int('n_bits', 2, 32, step=1)
+    ntics = trial.suggest_int('n_tics', 32, 4096, step=32)
+    #bleaching=trial.suggest_int('bleaching', 0, 1, step=1)
+    clf = WisardClassifier(n_bits=nbits, n_tics=ntics, bleaching=bleaching, random_state=848484848)
+    y_pred = cross_val_predict(clf, data, target, cv=5)
+    return accuracy_score(target, y_pred)
 
 def load_dataset(datafile, labelname, labelpos):
     if not os.path.isfile(datafile):
@@ -98,7 +109,10 @@ def main(argv):
 
     if args.optuna:
         # apply optimization
-        func = lambda trial: objective(trial, datafile, args.labelname, args.labelpos)
+        if args.withcv:
+            func = lambda trial: objectivecv(trial, datafile, args.labelname, args.labelpos, args.bleaching)
+        else:
+            func = lambda trial: objective(trial, datafile, args.labelname, args.labelpos, args.bleaching)
         study = optuna.create_study(directions=["maximize"])  # Create a new study.
         study.optimize(func, n_trials=args.trials)  
         print(f"optimal params {study.best_trial.params} with accuracy: {study.best_trial.value}")
@@ -112,9 +126,9 @@ def main(argv):
 
         clf = WisardClassifier(**params)
     else:
-        print(f"params: n_bits={args.nbits}, n_tics={args.ntics}, bleaching={False}")
+        print(f"params: n_bits={args.nbits}, n_tics={args.ntics}, bleaching={args.bleaching}")
         clf = WisardClassifier(n_bits=args.nbits,n_tics=args.ntics,
-                           debug=args.debug,bleaching=False,random_state=848484848, n_jobs=args.njobs)
+                           debug=args.debug,bleaching=args.bleaching,random_state=848484848, n_jobs=args.njobs)
     y_pred = cross_val_predict(clf, X, y, cv=args.cvfolds)
     print("Accuracy: %.3f" % accuracy_score(y, y_pred))
     print("F-Measure: %.3f" % f1_score(y, y_pred, average='weighted'))
