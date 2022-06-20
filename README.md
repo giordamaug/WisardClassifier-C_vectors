@@ -168,6 +168,24 @@ python2.7 wisard_classifier.py -h
 ```
 
 ----------------------
+Testing WisardClassifier with Optuna
+----------------------
+
+Automatic parameter setting can be enabled with the command:
+
+```bash
+$ python wisard_classifier.py -i <dataset> -O
+```
+
+If you use `-O` option, any other parameter setting option (like `-b` and `-z`, with the exception of the bleaching enabling flag `-B`) has no effect.
+Thus, if you want to find an optima setting with the support of the blaching, you need to run:
+
+```bash
+$ python wisard_classifier.py -i <dataset> -O -B
+```
+
+
+----------------------
 Testing WisardClassifier on KEEL datasets
 ----------------------
 
