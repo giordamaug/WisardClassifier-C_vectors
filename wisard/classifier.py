@@ -446,6 +446,32 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
             res = func(data)  # classify with bleaching (Work in progress)
             D = np.append(D, [res],axis=0)
         return D
+    
+     def decision_function_seq_b_noscale(self,X):
+        D = np.empty(shape=[0, len(self.classes_)])
+        def func(data):
+            b = self.b_def
+            confidence = 0.0
+            res_disc_list = [self.wiznet_[cl].ResponseNoScale(data, self.notics) for cl in range(self.nclasses_)]
+            res_disc = np.array(res_disc_list)
+            result_partial = None
+            while confidence < self.conf_def:
+                result_partial = np.sum(res_disc >= b, axis=1)
+                confidence = calc_confidence(result_partial)
+                b += 1
+                if(np.sum(result_partial) == 0):
+                    result_partial = np.sum(res_disc >= 1, axis=1)
+                    break
+            result_sum = np.sum(result_partial, dtype=np.float32)
+            if result_sum==0.0:
+                result = np.array(np.sum(res_disc, axis=1))/float(self.nrams_)
+            else:
+                result = np.array(result_partial)/result_sum
+            return result
+        for data in self.tqdm(X):
+            res = func(data)  # classify with bleaching (Work in progress)
+            D = np.append(D, [res],axis=0)
+        return D
 
     def fit(self, X, y):
         """Fit the WiSARD model to data matrix X and target(s) y.
