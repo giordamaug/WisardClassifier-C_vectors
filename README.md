@@ -54,11 +54,18 @@ script.
 Build and setup (Linux, Mac OSX)
 ----------------------
 
+To build the code and setup in python:
+
+```bash
+$ python setup.py build_ext
+```
+
 To build the code and setup in python (locally) you just need to execute:
 
 ```bash
 $ python setup.py build_ext --inplace
 ```
+
 
 This will produce the WiSARD wrapper library wit name: <code>wisard_wrapper.\<dllext\></code> 
 where <code>\<dllext\></code> is the library extension (<code>so</code> for Mac and Linux, <code>dll</code> for Windows).
