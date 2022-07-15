@@ -18,7 +18,7 @@ setup(name                = 'Wisard Library',
       license             = 'GNU Lesser General Public License v2 or later (LGPLv2+)',
 
       packages=['wisard'],
-      ext_modules=[Extension("wisard.wisard_wrapper",
+      ext_modules=[Extension("wisard_wrapper",
                              ["wisard_wrapper.pyx",
                               "Discriminator.cpp", "Ram.cpp"],
                              language="c++",
