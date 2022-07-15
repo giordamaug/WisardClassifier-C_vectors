@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precisio
 import scipy.sparse as sps
 from scipy.io import arff
 # import wisard classifier library
-from wisard import WisardClassifier
+from wisard.classifier import WisardClassifier
 #import utilities for matplot
 from utilities import *
 import time
