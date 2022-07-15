@@ -80,9 +80,9 @@ modules:
 
 1. Cython (http://cython.org) 
 
-1. Pathos (https://pathos.readthedocs.io/](https://pypi.org/project/pathos/)
+1. Pathos (https://pypi.org/project/pathos/)
 
-1. MatplotLib (optional)ttps://matplotlib.org)
+1. MatplotLib (optional) (https://matplotlib.org)
 
 1. tuna (optional) (https://matplotlib.org](https://optuna.readthedocs.io)
 
