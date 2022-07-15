@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 import pathos.multiprocessing as mp
 
-from wisard.wisard_wrapper import *
+from wisard_wrapper import *
 from tqdm import tqdm
 import functools
 
@@ -447,7 +447,7 @@ class WisardClassifier(BaseEstimator, ClassifierMixin):
             D = np.append(D, [res],axis=0)
         return D
     
-     def decision_function_seq_b_noscale(self,X):
+    def decision_function_seq_b_noscale(self,X):
         D = np.empty(shape=[0, len(self.classes_)])
         def func(data):
             b = self.b_def
