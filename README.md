@@ -18,6 +18,8 @@ Python environment:
 
 2) Scikit-Learn
 
+3) Pathos 
+
 WisardClassifier is a classifier method for machine learning accepting as input most common 
 data formats, such as ARFF, LibSVM, and CSV.
 
