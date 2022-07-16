@@ -44,7 +44,7 @@ parser.add_argument('-t', "--trials", metavar='<trials>', type=int, help='number
 # Define a simple 2-dimensional objective function whose minimum value is -1 when (x, y) = (0, -1).
 def objective(trial, datafile, labelname, labelpos, bleaching=False):
     data, target = load_dataset(datafile, labelname, labelpos)
-    X_train, X_val, y_train, y_val = train_test_split(data, target, test_size=0.10, stratify=target)
+    X_train, X_val, y_train, y_val = train_test_split(data, target, test_size=0.20, stratify=target)
 
     nbits = trial.suggest_int('n_bits', 2, 32, step=1)
     ntics = trial.suggest_int('n_tics', 32, 4096, step=32)
@@ -53,9 +53,10 @@ def objective(trial, datafile, labelname, labelpos, bleaching=False):
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_val)
 
-    accuracy = sklearn.metrics.accuracy_score(y_val, y_pred)
+    perf = sklearn.metrics.matthews_corrcoef(y_val, y_pred)
+    #perf = sklearn.metrics.accuracy_score(y_val, y_pred)
     #f1 = sklearn.metrics.f1_score(y_val, y_pred, average='weighted')
-    return accuracy
+    return perf
 
 def objectivecv(trial, datafile, labelname, labelpos, bleaching=False):
     data, target = load_dataset(datafile, labelname, labelpos)
