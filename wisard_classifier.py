@@ -84,15 +84,15 @@ def load_dataset(datafile, labelname, labelpos):
         if sps.issparse(X):
             X = X.toarray()
     elif datafile.endswith('.csv'):
-        data = np.array(np.genfromtxt(datafile, delimiter=",",dtype=None))[1:]
+        data = np.array(np.genfromtxt(datafile, delimiter=",",dtype=None, encoding=None))[1:]
         y = data[:,labelpos]
         X = np.delete(data, labelpos, 1)
-        X = X.astype(np.float)
+        X = X.astype(float)
     elif datafile.endswith('.tsv'):
         data = np.array(np.genfromtxt(datafile, delimiter="\t",dtype=None))[1:]
         y = data[:,labelpos]
         X = np.delete(data, labelpos, 1)
-        X = X.astype(np.float)
+        X = X.astype(float)
     else:
         raise Exception("wrong dataset extension")
     return X, y
