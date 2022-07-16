@@ -78,11 +78,15 @@ modules:
 
 1. Numpy (http://www.numpy.org)
 
-2. Cython (http://cython.org) 
+1. Cython (http://cython.org) 
 
-3. matplotlib (optional) (https://matplotlib.org)
+1. Pathos (https://pypi.org/project/pathos/)
 
-4. Optuna (optional) (https://matplotlib.org](https://optuna.readthedocs.io)
+1. MatplotLib (optional) (https://matplotlib.org)
+
+1. tuna (optional) (https://matplotlib.org](https://optuna.readthedocs.io)
+
+
 
 Please refer to the documentation of these packages for installation.
 
